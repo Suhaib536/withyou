@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For you</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Sour Gummy', cursive;
+            background-color: black;
+            color: #fff;       }
+
+        .lyrics-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 80%;
+            font-size: 2rem;
+            z-index: 2;
+            /* Ensure lyrics are above GIFs */
+        }
+
+        .lyrics-line {
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 0;
+            animation: typing 3s steps(40, end) forwards;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+                opacity: 1;
+            }
+
+            to {
+                width: 100%;
+                opacity: 1;
+            }
+        }
+
+        #start-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 4rem;
+            color: #ff1493;
+            animation: glow 1.5s infinite alternate;
+            z-index: 3;
+            /* Ensure button is above everything */
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #ff1493, 0 0 20px #ff1493, 0 0 30px #ff1493;
+            }
+
+            to {
+                text-shadow: 0 0 20px #ff69b4, 0 0 30px #ff69b4, 0 0 40px #ff69b4;
+            }
+        }
+
+        /* Style for the GIF containers */
+        .gif {
+            position: fixed;
+            opacity: 0;
+            /* Start hidden */
+            animation: fadeIn 1s ease-in forwards;
+            z-index: 1;
+            /* Ensure GIFs are below lyrics */
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Sour+Gummy&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Audio Element -->
+    <audio id="audio" src="Yung Kai - Blue (1).mp3"></audio>
+
+    <!-- Start Button -->
+    <button id="start-button">❤️</button>
+
+    <!-- Lyrics Container -->
+    <div class="lyrics-container">
+        <div id="lyrics"></div>
+    </div>
+
+    <!-- GIFs will be dynamically added here -->
+
+    <script>
+        const lyrics = [
+            { time: 0.0, text: "🎶" },
+            { time: 18.71, text: "Your morning eyes 👀, I could stare like watching stars 🌟", speed: 80 }, // Faster typing
+            { time: 21.34, text: "I could walk you by 🚶, and I'll tell without a thought 💭", speed: 100 }, // Slower typing
+            { time: 22.00, text: "You'd be mine 🫠", speed: 50 }, // Very fast typing
+            { time: 23.00, text: "Would you mind 🥺, if i took your hand tonight 👫", speed: 80 }, // Medium speed
+            { time: 24.36, text: "Know you're all ❤️, that I want this life 😌", speed: 90 }, // Medium speed
+            { time: 26.00, text: "🎶", speed: 80 }, // Medium speed
+            { time: 27.55, text: "I'll imagine we fell in love 💖", speed: 70 }, // Medium speed
+            { time: 28.72, text: "I'll nap under moonlight skies with you 🫵", speed: 80 }, // Slower typing
+            { time: 29.34, text: "I think I'll picture us 📷, you with the waves 🌊", speed: 60 }, // Faster typing
+            { time: 30.00, text: "The ocean's colors on your face 🥰", speed: 60 }, // Very fast typing
+            { time: 31.16, text: "I'll leave my heart with your air 🦋", speed: 90 }, // Medium speed
+            { time: 32.26, text: "So let me fly with you 🥺", speed: 90 }, // Faster typing
+            { time: 33.51, text: "Will you be forever with me 💗", speed: 90 }, // Slower typing
+            { time: 35.36, text: "🎶", speed: 80 }, // Medium speed
+            { time: 67.86, text: "My love will always stay by you 👩‍❤️‍👨", speed: 90 }, // Medium speed
+            { time: 70.50, text: "I'll keep it safe so don't you worry a thing 🙃, I'll tell you i love you more 💝", speed: 80 }, // Slower typing
+            { time: 72.40, text: "It's stuck with you forever 😉, so promise you won't let it go 😅", speed: 90 }, // Medium speed
+            { time: 73.17, text: "I'll trust the universe will always bring me to you 🫶", speed: 100 }, // Slower typing
+            { time: 75.50, text: "I'll imagine we fell in love 💞", speed: 70 }, // Faster typing
+            { time: 76.00, text: "I'll nap under moonlight skies with you love 🫵", speed: 80 }, // Medium speed
+            { time: 77.00, text: "I think I'll picture us, you with the waves 🌊", speed: 60 }, // Medium speed
+            { time: 78.00, text: "The ocean's colors on your face 🥰", speed: 60 }, // Very fast typing
+            { time: 79.00, text: "I'll leave my heart with your air 🦋", speed: 90 }, // Faster typing
+            { time: 80.76, text: "So let me fly with you 👫", speed: 90 }, // Medium speed
+            { time: 81.14, text: "Will you be forever with me 💍", speed: 100 } // Slower typing
+        ];
+
+        const lyricsContainer = document.getElementById('lyrics');
+        const startButton = document.getElementById('start-button');
+        const audio = document.getElementById('audio');
+
+        function typeText(element, text, speed = 50) {
+            return new Promise((resolve) => {
+                let i = 0;
+                const typingInterval = setInterval(() => {
+                    if (i < text.length) {
+                        // Add a small delay for commas
+                        if (text[i] === ',') {
+                            setTimeout(() => {
+                                element.textContent += text[i];
+                                i++;
+                            }, 500); // 200ms delay for commas
+                        } else {
+                            element.textContent += text[i];
+                            i++;
+                        }
+                    } else {
+                        clearInterval(typingInterval);
+                        resolve();
+                    }
+                }, speed);
+            });
+        }
+
+        async function displayLyrics() {
+            for (let i = 0; i < lyrics.length; i++) {
+                const line = lyrics[i];
+                const lineElement = document.createElement('div');
+                lineElement.classList.add('lyrics-line');
+                lyricsContainer.innerHTML = ''; // Clear previous line
+                lyricsContainer.appendChild(lineElement);
+
+                // Type the current line with its custom speed
+                await typeText(lineElement, line.text, line.speed);
+
+                // Wait for the next line's time
+                const nextLineTime = i < lyrics.length - 1 ? lyrics[i + 1].time - line.time : 0;
+                await new Promise((resolve) => setTimeout(resolve, nextLineTime * 1000));
+            }
+        }
+
+        function createAndPlaceGifs() {
+            const numberOfGifs = 15; // Number of duplicated GIFs
+            const gifSrc = "gif/Pink Flying Sticker.gif"; // Path to the GIF
+
+            for (let i = 0; i < numberOfGifs; i++) {
+                const gif = document.createElement('img');
+                gif.classList.add('gif');
+                gif.src = gifSrc;
+
+                // Random size between 50px and 200px
+                const size = Math.floor(Math.random() * (200 - 50 + 1)) + 50;
+                gif.style.width = `${size}px`;
+                gif.style.height = 'auto';
+
+                // Random position
+                const left = Math.random() * (window.innerWidth - size);
+                const top = Math.random() * (window.innerHeight - size);
+                gif.style.left = `${left}px`;
+                gif.style.top = `${top}px`;
+
+                document.body.appendChild(gif);
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            startButton.style.display = 'none'; // Hide the button
+            createAndPlaceGifs(); // Create and place GIFs
+            audio.play(); // Start playing the audio
+            displayLyrics(); // Start displaying the lyrics
+        });
+
+        // Make the website responsive
+        window.addEventListener('resize', () => {
+            const gifs = document.querySelectorAll('.gif');
+            gifs.forEach(gif => {
+                const size = parseInt(gif.style.width);
+                const left = Math.random() * (window.innerWidth - size);
+                const top = Math.random() * (window.innerHeight - size);
+                gif.style.left = `${left}px`;
+                gif.style.top = `${top}px`;
+            });
+        });
+    </script>
+</body>
+
+</html>
